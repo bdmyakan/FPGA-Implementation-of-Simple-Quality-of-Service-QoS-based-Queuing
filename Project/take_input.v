@@ -1,0 +1,68 @@
+module take_input (input clk,
+							input button0,
+							input button1,
+							input start,
+							output reg [3:0] out,
+							output reg data_en
+							);
+							
+reg start_previous;
+reg button0_prev;
+reg button1_prev;
+reg [3:0] coll;
+reg [2:0] count;
+
+initial begin
+
+	data_en = 0;
+	coll = 4'b0000;
+	out = 4'b0000;
+	count = 3'b000;
+	
+end
+
+always @(posedge clk) begin
+
+		if (start == 1) start_previous <= 1;
+		else if (start == 0) start_previous <= 0;
+
+		if (button0 == 1) button0_prev <= 1;
+		else if (button0 == 0) button0_prev <= 0;
+		
+		if (button1 == 1) button1_prev <= 1;
+		else if (button1 == 0) button1_prev <= 0;
+		
+		if (start_previous == 1 && start == 0)
+		begin
+			data_en <= 1;
+			count <= 3'b000;
+		end
+		
+		if (data_en && (count < 3'b100))
+		begin
+		
+			if (button1_prev == 1 && button1 == 0) begin
+				coll = {coll[2:0], 1'b1};
+				count <= count + 3'b001;
+			end
+			
+			if (button0_prev == 1 && button0 == 0) begin
+				coll = {coll[2:0], 1'b0};
+				count <= count + 3'b001;
+			end
+
+		end
+		
+		if (count == 3'b100)
+		begin
+			data_en <= 0;
+			count <= 3'b000;
+		end
+	
+end
+
+
+always @(negedge data_en) begin
+	out<=coll;
+end
+endmodule
